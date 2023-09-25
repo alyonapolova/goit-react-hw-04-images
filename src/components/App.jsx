@@ -1,4 +1,4 @@
-import { React, useCallback, useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
 import Loader from './Loader/Loader';
@@ -8,7 +8,7 @@ import Button from './Button/Button';
 import fetchImages from './api/Api';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 
-const App = () => {
+function App() {
   const [page, setPage] = useState(1);
   const [q, setQ] = useState('');
   const [per_page] = useState(12);
@@ -27,7 +27,6 @@ const App = () => {
       captionPosition: 'bottom',
       captionDelay: 250,
     });
-
     return lightbox;
   };
 
@@ -35,44 +34,38 @@ const App = () => {
     setQ(e.target.value.trim());
   };
 
-  const onSubmitForm = useCallback(
-    async e => {
-      e.preventDefault();
-      // console.log(e);
+  const onSubmitForm = async e => {
+    e.preventDefault();
 
-      try {
-        setIsLoading(true);
-        setPage(1);
+    try {
+      setPage(1);
+      setIsLoading(true);
 
-        const data = await fetchImages(q, per_page, page);
-
-        if (data.totalHits === 0) {
-          Notify.failure('We dont have any photos that match your request.');
-        }
-        if (data.totalHits > 12) {
-          setLoadMore(true);
-        } else {
-          setLoadMore(false);
-        }
-        setImages(data.hits);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setIsLoading(false);
+      const data = await fetchImages(q, per_page, page);
+      //console.log(data);
+      if (data.totalHits === 0) {
+        Notify.failure('We dont have any photos that match your request.');
       }
-    },
-    [q, page, per_page]
-  );
 
-  useEffect(() => {
-    onSubmitForm();
-  }, [onSubmitForm, q]);
+      if (data.totalHits > 12) {
+        setLoadMore(true);
+      } else {
+        setLoadMore(false);
+      }
+
+      setImages(data.hits);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const onLoadMoreBnt = async () => {
     try {
-      await setIsLoading(true);
-      await setPage(prevPage => prevPage + 1);
-      console.log(page);
+      setIsLoading(true);
+      setPage(prevPage => prevPage + 1);
+
       const data = await fetchImages(q, per_page, page);
 
       setImages(prevImages => [...prevImages, ...data.hits]);
@@ -95,5 +88,6 @@ const App = () => {
       {loadMore && !isLoading && <Button onClick={onLoadMoreBnt} />}
     </div>
   );
-};
+}
+
 export default App;
