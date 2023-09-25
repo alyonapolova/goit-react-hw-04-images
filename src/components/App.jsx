@@ -61,7 +61,7 @@ const App = () => {
         setIsLoading(false);
       }
     },
-    [q]
+    [q, page, per_page]
   );
 
   useEffect(() => {
