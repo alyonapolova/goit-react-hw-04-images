@@ -1,4 +1,4 @@
-import { React, useEffect, useState } from 'react';
+import { React, useCallback, useEffect, useState } from 'react';
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
 import Loader from './Loader/Loader';
@@ -16,6 +16,10 @@ const App = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [loadMore, setLoadMore] = useState(false);
 
+  useEffect(() => {
+    createLightbox();
+  }, [images]);
+
   const createLightbox = () => {
     const lightbox = new SimpleLightbox('.gallery', {
       captionType: 'attr',
@@ -27,29 +31,21 @@ const App = () => {
     return lightbox;
   };
 
-  // useEffect(() => {
-  //   createLightbox();
-  // }, []);
-
-  // componentDidUpdate() {
-  //   this.createLightbox();
-  // }
-
   const onInputValue = e => {
     setQ(e.target.value.trim());
   };
-  // onInputValue = e => {
-  //   this.setState({
-  //     q: e.target.value.trim(),
-  //   });
-  // };
 
-  useEffect(() => {
-    setIsLoading(true);
+  const onSubmitForm = useCallback(
+    async e => {
+      e.preventDefault();
+      // console.log(e);
 
-    fetchImages(q, per_page, page)
-      .then(data => {
-        console.log(data);
+      try {
+        setIsLoading(true);
+        setPage(1);
+
+        const data = await fetchImages(q, per_page, page);
+
         if (data.totalHits === 0) {
           Notify.failure('We dont have any photos that match your request.');
         }
@@ -58,28 +54,25 @@ const App = () => {
         } else {
           setLoadMore(false);
         }
-        setImages(prevImages => [...prevImages, ...data.hits]);
-      })
-      .catch(error => {
+        setImages(data.hits);
+      } catch (error) {
         console.error(error);
-      })
-      .finally(() => {
+      } finally {
         setIsLoading(false);
-      });
-  }, [q, per_page, page]);
+      }
+    },
+    [q]
+  );
 
-  const onSubmitForm = e => {
-    e.preventDefault();
-    if (page !== 1) {
-      setPage(1);
-    }
-  };
+  useEffect(() => {
+    onSubmitForm();
+  }, [onSubmitForm, q]);
 
-  const onLoadMoreBnt = async e => {
-    //console.log(e.target);
+  const onLoadMoreBnt = async () => {
     try {
-      setIsLoading(true);
-      setPage(prevState => prevState + 1);
+      await setIsLoading(true);
+      await setPage(prevPage => prevPage + 1);
+      console.log(page);
       const data = await fetchImages(q, per_page, page);
 
       setImages(prevImages => [...prevImages, ...data.hits]);
@@ -93,33 +86,6 @@ const App = () => {
       setIsLoading(false);
     }
   };
-
-  // onLoadMoreBnt = async e => {
-  //   //console.log(e.target);
-
-  //   try {
-  //     await this.setState(prevState => ({
-  //       isLoading: true,
-  //       page: prevState.page + 1,
-  //     }));
-  //     const data = await fetchImages(
-  //       this.state.q,
-  //       this.state.per_page,
-  //       this.state.page
-  //     );
-
-  //     this.setState(prevState => ({
-  //       images: [...prevState.images, ...data.hits],
-  //     }));
-  //     if (data.totalHits <= 12) {
-  //       this.setState({ loadMore: false });
-  //     }
-  //   } catch (error) {
-  //     console.error(error);
-  //   } finally {
-  //     this.setState({ isLoading: false });
-  //   }
-  // };
 
   return (
     <div>
