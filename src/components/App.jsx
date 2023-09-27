@@ -11,10 +11,8 @@ import { Notify } from 'notiflix/build/notiflix-notify-aio';
 function App() {
   const [page, setPage] = useState(1);
   const [q, setQ] = useState('');
-  const [per_page] = useState(12);
   const [images, setImages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [loadMore, setLoadMore] = useState(false);
 
   useEffect(() => {
     createLightbox();
@@ -30,30 +28,26 @@ function App() {
     return lightbox;
   };
 
-  const onInputValue = e => {
-    setQ(e.target.value.trim());
+  const queryHandler = q => {
+    setQ(q);
+  };
+
+  const onSubmitForm = () => {
+    setImages([]);
     setPage(1);
   };
 
-  const onSubmitForm = async e => {
-    e.preventDefault();
-
+  const fetchData = async () => {
     try {
-      //setPage(1);
       setIsLoading(true);
-
-      const data = await fetchImages(q, per_page, page);
-      setImages(data.hits);
-      console.log(data);
+      const data = await fetchImages(q, page);
+      if (data.hits) {
+        setImages([...images, ...data.hits]);
+        setPage(prevPage => prevPage + 1);
+      }
       if (data.totalHits === 0) {
         Notify.failure('We dont have any photos that match your request.');
       }
-
-      if (data.totalHits > 12) {
-        setLoadMore(true);
-      } else {
-        setLoadMore(false);
-      }
     } catch (error) {
       console.error(error);
     } finally {
@@ -61,31 +55,19 @@ function App() {
     }
   };
 
-  const onLoadMoreBnt = async () => {
-    try {
-      setIsLoading(true);
-      setPage(prevPage => prevPage + 1);
+  const onLoadMoreBtn = () => fetchData();
 
-      const data = await fetchImages(q, per_page, page + 1);
-
-      setImages(prevImages => [...prevImages, ...data.hits]);
-
-      if (data.totalHits <= 12) {
-        setLoadMore(false);
-      }
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  useEffect(() => {
+    if (q === '') return;
+    fetchData();
+  }, [q]);
 
   return (
     <div>
-      <Searchbar value={q} onSubmit={onSubmitForm} onChange={onInputValue} />
+      <Searchbar setQ={queryHandler} onHandleForm={onSubmitForm} />
       <ImageGallery images={images} />
       {isLoading && <Loader />}
-      {loadMore && !isLoading && <Button onClick={onLoadMoreBnt} />}
+      {images.length > 11 && <Button onClick={onLoadMoreBtn} />}
     </div>
   );
 }

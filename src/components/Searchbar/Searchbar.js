@@ -1,8 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import css from './Searchbar.module.css';
-const Searchbar = ({ value, onChange, onSubmit }) => {
+const Searchbar = ({ setQ, onHandleForm }) => {
+  const [localQuery, setLocalQuery] = useState('');
+  const onSubmitForm = e => {
+    e.preventDefault();
+    setQ(localQuery);
+    onHandleForm();
+  };
+  const onInputValue = e => {
+    //console.log(e.target.value);
+    setLocalQuery(e.target.value.trim());
+  };
   return (
-    <form onSubmit={onSubmit} className={css.formSubmit}>
+    <form onSubmit={onSubmitForm} className={css.formSubmit}>
       <button className={css.formBtn} type="submit">
         &#128270;
       </button>
@@ -10,8 +20,8 @@ const Searchbar = ({ value, onChange, onSubmit }) => {
         <input
           className={css.searchInput}
           type="text"
-          value={value}
-          onChange={onChange}
+          value={localQuery}
+          onChange={onInputValue}
           name="q"
         ></input>
       </label>
