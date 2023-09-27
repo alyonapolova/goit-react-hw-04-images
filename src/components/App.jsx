@@ -57,10 +57,15 @@ function App() {
 
   const onLoadMoreBtn = () => fetchData();
 
-  useEffect(() => {
-    if (q === '') return;
-    fetchData();
-  }, [q]);
+  useEffect(
+    () => {
+      if (q === '') return;
+
+      fetchData();
+    },
+    // eslint-disable-next-line
+    [q]
+  );
 
   return (
     <div>
