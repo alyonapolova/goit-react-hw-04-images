@@ -8,7 +8,7 @@ const Searchbar = ({ setQ, onHandleForm }) => {
     onHandleForm();
   };
   const onInputValue = e => {
-    //console.log(e.target.value);
+    console.log(e.target.value);
     setLocalQuery(e.target.value.trim());
   };
   return (
