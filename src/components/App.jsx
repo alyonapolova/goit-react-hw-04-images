@@ -32,17 +32,19 @@ function App() {
 
   const onInputValue = e => {
     setQ(e.target.value.trim());
+    setPage(1);
   };
 
   const onSubmitForm = async e => {
     e.preventDefault();
 
     try {
-      setPage(1);
+      //setPage(1);
       setIsLoading(true);
 
       const data = await fetchImages(q, per_page, page);
-      //console.log(data);
+      setImages(data.hits);
+      console.log(data);
       if (data.totalHits === 0) {
         Notify.failure('We dont have any photos that match your request.');
       }
@@ -52,8 +54,6 @@ function App() {
       } else {
         setLoadMore(false);
       }
-
-      setImages(data.hits);
     } catch (error) {
       console.error(error);
     } finally {
@@ -66,7 +66,7 @@ function App() {
       setIsLoading(true);
       setPage(prevPage => prevPage + 1);
 
-      const data = await fetchImages(q, per_page, page);
+      const data = await fetchImages(q, per_page, page + 1);
 
       setImages(prevImages => [...prevImages, ...data.hits]);
 
